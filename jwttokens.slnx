@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="jwttokens/jwttokens.vcxproj" Id="82b41482-a276-4ede-a56b-c0bd9e34a83b" />
+</Solution>
