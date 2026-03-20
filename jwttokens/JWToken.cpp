@@ -83,30 +83,31 @@ cleanup:
     if (hHash) BCryptDestroyHash(hHash);
     if (pbHashObject) HeapFree(GetProcessHeap(), 0, pbHashObject);
     if (hAlg) BCryptCloseAlgorithmProvider(hAlg, 0);
-
+        
     return result; 
 }
 
 extern "C" __declspec(dllexport) void GenerateToken(const char* parameters, const char* secret_key, char* out_buffer, int buffer_size) {
     if (!parameters || !secret_key || !out_buffer || buffer_size <= 0) return;
 
-   
+    // 1. Формируем заголовок и берем чистые данные от начальника (без обертки data)
     std::string header = R"({"alg":"HS256","typ":"JWT"})";
-    std::string payload = R"({"data": ")" + std::string(parameters) + R"("})";
+    std::string payload = std::string(parameters);
 
-    
+    // 2. Кодируем заголовок и данные в Base64Url (ЭТИ СТРОКИ ДОЛЖНЫ БЫТЬ ТУТ!)
     std::string b64_header = base64url_encode(header);
     std::string b64_payload = base64url_encode(payload);
 
-    
+    // 3. Формируем тело для подписи (Header + Payload через точку)
     std::string message_to_sign = b64_header + "." + b64_payload;
 
-    
+    // 4. Создаем криптографическую подпись HMAC-SHA256
     std::string signature = CreateHMACSHA256(message_to_sign, std::string(secret_key));
 
-  
+    // 5. Собираем финальный JWT токен
     std::string jwt_token = message_to_sign + "." + signature;
 
+    // 6. Копируем результат в выходной буфер
     snprintf(out_buffer, buffer_size, "%s", jwt_token.c_str());
 }
 
